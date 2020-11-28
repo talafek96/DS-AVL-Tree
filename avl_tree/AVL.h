@@ -133,7 +133,7 @@ namespace DS
                     root->right = newNode(key, val, root);
                     return root->right;
                 }
-                root->right = insert(key, val, root->right);
+                root->right = insertAux(key, val, root->right);
             }
             else //There already exists a node with the same key, so overwrite it's contents.
             {
@@ -181,6 +181,7 @@ namespace DS
          *        AVL<KEY_TYPE, VAL_TYPE, NODE> tree();
          * ---------------------------------------
          * Create an empty AVL tree, or intialize it with a root using the first syntax.
+         * Worst time complexity: O(1)
          * 
          * Possible Exceptions: std::bad_alloc
          */
