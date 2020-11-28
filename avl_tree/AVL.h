@@ -35,7 +35,7 @@ namespace DS
         }
         
         // Return the height of node.
-        static int height(std::shared_ptr<NODE> node)
+        static int height(const std::shared_ptr<NODE>& node)
         {
             if(node == nullptr)
             {
@@ -56,20 +56,10 @@ namespace DS
             node->father = father;
             return node;
         }
-        
-        // Get the balance factor of a node
-        static int getBalance(std::shared_ptr<NODE> node)
-        {
-            if(node == nullptr)
-            {
-                return 0;
-            }
-            return height(node->left) - height(node->right);
-        }
 
         /*   Class Private Methods   */
         // General right and left rotations for balanced trees, return the new root of the tree.
-        std::shared_ptr<NODE>& rotateRight(std::shared_ptr<NODE>& sub_root)
+        std::shared_ptr<NODE> rotateRight(std::shared_ptr<NODE>& sub_root)
         {
             std::shared_ptr<NODE> father = sub_root->father;
             std::shared_ptr<NODE> L_sub = sub_root->left;
@@ -80,7 +70,10 @@ namespace DS
             sub_root->left = LR_sub;
             L_sub->father = father; // Update the fathers
             sub_root->father = L_sub;
-            LR_sub->father = sub_root;
+            if(LR_sub)
+            {
+                LR_sub->father = sub_root;
+            }
 
             // Update the new heights:
             L_sub->height = max(height(L_sub->left), height(L_sub->right)) + 1;
@@ -91,7 +84,7 @@ namespace DS
         }
 
 
-        std::shared_ptr<NODE>& rotateLeft(std::shared_ptr<NODE>& sub_root)
+        std::shared_ptr<NODE> rotateLeft(std::shared_ptr<NODE>& sub_root)
         {
             std::shared_ptr<NODE> father = sub_root->father;
             std::shared_ptr<NODE> R_sub = sub_root->right;
@@ -102,7 +95,10 @@ namespace DS
             sub_root->right = RL_sub;
             R_sub->father = father; // Update the fathers
             sub_root->father = R_sub;
-            RL_sub->father = sub_root;
+            if(RL_sub)
+            {
+                RL_sub->father = sub_root;
+            }
 
             // Update the new heights:
             R_sub->height = max(height(R_sub->left), height(R_sub->right)) + 1;
@@ -113,7 +109,7 @@ namespace DS
         }
 
         // An auxiliary insert method for the class' use.
-        std::shared_ptr<NODE>& insertAux(const KEY_TYPE key, const VAL_TYPE val, std::shared_ptr<NODE>& root)
+        std::shared_ptr<NODE> insertAux(const KEY_TYPE& key, const VAL_TYPE& val, std::shared_ptr<NODE>& root)
         {
             assert(root != nullptr);
             // 1. Do a normal BST rotation:
@@ -122,7 +118,8 @@ namespace DS
                 if(root->left == nullptr)
                 {
                     root->left = newNode(key, val, root);
-                    return root->left;
+                    root->height = max(height(root->left), height(root->right)) + 1;;
+                    return root;
                 }
                 root->left = insertAux(key, val, root->left);
             }
@@ -131,7 +128,8 @@ namespace DS
                 if(root->right == nullptr)
                 {
                     root->right = newNode(key, val, root);
-                    return root->right;
+                    root->height = max(height(root->left), height(root->right)) + 1;;
+                    return root;
                 }
                 root->right = insertAux(key, val, root->right);
             }
@@ -169,6 +167,128 @@ namespace DS
                 return rotateRight(root);
             }
             return root;
+        } 
+
+        //finds minimum next node (find next inorder) 
+        //goes first to right child of the root and then all the way left to minimum
+        std::shared_ptr<NODE> nextLowestNode(std::shared_ptr<NODE>& root) const
+        {
+            std::shared_ptr<NODE> currChild = root->right;
+            while(currChild->left != nullptr)
+            {
+                currChild = currChild->left;
+            }
+            return currChild;
+        }
+
+        // An auxiliary eraese method for the class' use.
+        std::shared_ptr<NODE> eraseAux(std::shared_ptr<NODE>& root, const KEY_TYPE& key)
+        {
+            // Search the node in BST
+            if (root == nullptr)
+            {
+                return root;
+            }
+            if (key < root->key)
+            {
+                root->left = eraseAux(root->left, key);
+            }
+            else if (key > root->key)
+            {
+                root->right = eraseAux(root->right, key);
+            }
+            // If root->key==key then that's the node we want to delete
+            else
+            {
+                // If the root has up to 1 child:
+                if(root->left == nullptr || root->right == nullptr)
+                {
+                    std::shared_ptr<NODE> child = root->left? root->left : root->right;
+
+                    // If there are no children at all
+                    if (child==nullptr)
+                    {
+                        root = nullptr;
+                    }
+                    // Only one child
+                    else
+                    {
+                        child->father = root->father;
+                        *(root) = *(child);
+                        // Update the children's father to his new address:
+                        if(child->right)
+                        {
+                            child->right->father = root;
+                        }
+                        if(child->left)
+                        {
+                            child->left->father = root;
+                        }
+                    }
+                }
+                // Two children
+                else
+                {
+                    // Find the root's replacement node:
+                    std::shared_ptr<NODE> nextMin = nextLowestNode(root);
+                    // Backup the pointers of root before we override them
+                    std::shared_ptr<NODE> rootOldLeftChild = root->left;
+                    std::shared_ptr<NODE> rootOldRightChild = root->right;
+                    std::shared_ptr<NODE> rootOldFather = root->father;
+                    *(root) = *(nextMin); // Overwrite root with his replacement
+                    root->left = rootOldLeftChild; // Restore the original pointers
+                    root->father = rootOldFather;
+                    root->right = rootOldRightChild;
+                    root->right = eraseAux(root->right, nextMin->key);
+                }
+            }
+
+            // If a leaf was deleted:
+            if (root == nullptr)
+            {
+                return root;
+            }
+            // Update heights:
+            root->height = max(height(root->right), height(root->left)) +1;
+            // Confirm balance factors:
+            int balance_fact = getBalance(root);
+            // If the node is unbalanced then we need two rotations according to the 4 cases:
+            if (balance_fact > 1)
+            {
+                if (getBalance(root->left) >= 0) // LL rotation
+                {
+                    return rotateRight(root);
+                }
+                else // LR rotation
+                {
+                    root->left = rotateLeft(root->left);
+                    return rotateRight(root);
+                }
+            }
+            if (balance_fact < -1)
+            {
+                if (getBalance(root->right) <= 0)  //RR rotation
+                {
+                    return rotateLeft(root);
+                }
+                else //RL rotation
+                {
+                    root->right = rotateRight(root->right);
+                    return rotateLeft(root);
+                }
+            }
+            return root;
+        }
+
+        // An auxiliary function for inOrder.
+        template<class FUNCTOR>
+        void inOrderAux(const std::shared_ptr<NODE>& p, FUNCTOR& func) const
+        {
+            if(p == NULL) return;
+
+            inOrderAux(p->left, func);
+            func(p);
+            inOrderAux(p->right, func);
         }
 
         /**********************************/
@@ -185,7 +305,8 @@ namespace DS
          * 
          * Possible Exceptions: std::bad_alloc
          */
-        explicit AVL(const NODE& root = NULL) : root(std::make_shared<NODE>(root)) { }
+        explicit AVL(const NODE& root) : tree_root(std::make_shared<NODE>(root)) { }
+        explicit AVL() : tree_root(nullptr) { }
 
         AVL(const AVL<KEY_TYPE, VAL_TYPE,NODE>& other) = delete;
         AVL& operator=(const AVL& other) = delete;
@@ -202,7 +323,7 @@ namespace DS
          * Possible Exceptions:
          * std::bad_alloc
          */
-        std::shared_ptr<NODE>& insert(const KEY_TYPE key, const VAL_TYPE val)
+        std::shared_ptr<NODE>& insert(const KEY_TYPE& key, const VAL_TYPE& val)
         {
             if(tree_root == nullptr)
             {
@@ -211,6 +332,44 @@ namespace DS
             }
             tree_root = insertAux(key, val, tree_root);
             return tree_root;
+        }
+        
+        /*
+         * Method: erase
+         * Usage: tree.erase(key);
+         * -----------------------------------
+         * Erases the pair corresponding to 'key' from the AVL tree.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(log n).
+         */
+        void erase(const KEY_TYPE& key)
+        {
+            eraseAux(tree_root, key);
+        }
+
+        /*
+         * Method: inOrder
+         * Usage: tree.inOrder(functor);
+         * -----------------------------------
+         * Applies the functor for each node.
+         * For proper use of this method, do not attempt to change the nodes of the tree.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(n * O(func)).
+         */
+        template<class FUNCTOR>
+        void inOrder(FUNCTOR& func) const
+        {
+            inOrderAux(tree_root, func);
+        }
+
+        // Get the balance factor of a node
+        static int getBalance(const std::shared_ptr<NODE>& node)
+        {
+            if(node == nullptr)
+            {
+                return 0;
+            }
+            return height(node->left) - height(node->right);
         }
     };
 }
