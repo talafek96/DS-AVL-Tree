@@ -57,6 +57,16 @@ namespace DS
             return node;
         }
 
+        // Get the balance factor of a node
+        static int getBalance(const std::shared_ptr<NODE>& node)
+        {
+            if(node == nullptr)
+            {
+                return 0;
+            }
+            return height(node->left) - height(node->right);
+        }
+
         /*   Class Private Methods   */
         // General right and left rotations for balanced trees, return the new root of the tree.
         std::shared_ptr<NODE> rotateRight(std::shared_ptr<NODE>& sub_root)
@@ -76,8 +86,8 @@ namespace DS
             }
 
             // Update the new heights:
-            L_sub->height = max(height(L_sub->left), height(L_sub->right)) + 1;
             sub_root->height = max(height(sub_root->left), height(sub_root->right)) + 1;
+            L_sub->height = max(height(L_sub->left), height(L_sub->right)) + 1;
 
             // Return the new sub root
             return L_sub;
@@ -101,8 +111,8 @@ namespace DS
             }
 
             // Update the new heights:
-            R_sub->height = max(height(R_sub->left), height(R_sub->right)) + 1;
             sub_root->height = max(height(sub_root->left), height(sub_root->right)) + 1;
+            R_sub->height = max(height(R_sub->left), height(R_sub->right)) + 1;
 
             // Return the new sub root
             return R_sub;
@@ -249,7 +259,7 @@ namespace DS
                 return root;
             }
             // Update heights:
-            root->height = max(height(root->right), height(root->left)) +1;
+            root->height = max(height(root->right), height(root->left)) + 1;
             // Confirm balance factors:
             int balance_fact = getBalance(root);
             // If the node is unbalanced then we need two rotations according to the 4 cases:
@@ -289,6 +299,28 @@ namespace DS
             inOrderAux(p->left, func);
             func(p);
             inOrderAux(p->right, func);
+        }
+
+        // An auxiliary function for preOrder.
+        template<class FUNCTOR>
+        void preOrderAux(const std::shared_ptr<NODE>& p, FUNCTOR& func) const
+        {
+            if(p == NULL) return;
+
+            func(p);
+            inOrderAux(p->left, func);
+            inOrderAux(p->right, func);
+        }
+
+        // An auxiliary function for postOrder.
+        template<class FUNCTOR>
+        void postOrderAux(const std::shared_ptr<NODE>& p, FUNCTOR& func) const
+        {
+            if(p == NULL) return;
+
+            inOrderAux(p->left, func);
+            inOrderAux(p->right, func);
+            func(p);
         }
 
         /**********************************/
@@ -344,14 +376,14 @@ namespace DS
          */
         void erase(const KEY_TYPE& key)
         {
-            eraseAux(tree_root, key);
+            tree_root = eraseAux(tree_root, key);
         }
 
         /*
          * Method: inOrder
          * Usage: tree.inOrder(functor);
          * -----------------------------------
-         * Applies the functor for each node.
+         * Applies the functor for each node in an inorder traversal.
          * For proper use of this method, do not attempt to change the nodes of the tree.
          * When n is the total number of keys in the tree, the
          * worst time and space complexity for this method is O(n * O(func)).
@@ -362,14 +394,34 @@ namespace DS
             inOrderAux(tree_root, func);
         }
 
-        // Get the balance factor of a node
-        static int getBalance(const std::shared_ptr<NODE>& node)
+        /*
+         * Method: preOrder
+         * Usage: tree.prOrder(functor);
+         * -----------------------------------
+         * Applies the functor for each node in a preorder traversal.
+         * For proper use of this method, do not attempt to change the nodes of the tree.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(n * O(func)).
+         */
+        template<class FUNCTOR>
+        void preOrder(FUNCTOR& func) const
         {
-            if(node == nullptr)
-            {
-                return 0;
-            }
-            return height(node->left) - height(node->right);
+            preOrderAux(tree_root, func);
+        }
+
+        /*
+         * Method: postOrder
+         * Usage: tree.postOrder(functor);
+         * -----------------------------------
+         * Applies the functor for each node in a postorder traversal.
+         * For proper use of this method, do not attempt to change the nodes of the tree.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(n * O(func)).
+         */
+        template<class FUNCTOR>
+        void postOrder(FUNCTOR& func) const
+        {
+            postOrderAux(tree_root, func);
         }
     };
 }
