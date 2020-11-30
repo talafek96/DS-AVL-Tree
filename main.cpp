@@ -9,9 +9,9 @@ class printAndConfirmBF
 public:
     bool operator() (const std::shared_ptr<NODE>& p)
     {
-        int balance_fact = DS::AVL<int, int, DS::graph_node<int, int>>::getBalance(p);
-        // std::cout << p->key << " : " << p->val << "      Balance Factor: " << balance_fact << std::endl;
-        if(balance_fact > 1 || balance_fact < -1) return false;
+        // int balance_fact = DS::AVL<int, int, DS::graph_node<int, int>>::getBalance(p);
+        std::cout << p->key << " : " << p->val << std::endl;
+        // if(balance_fact > 1 || balance_fact < -1) return false;
         return true;
     }
 };
