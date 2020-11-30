@@ -1,3 +1,5 @@
+#ifndef AVL_T
+#define AVL_T
 #include <iostream>
 #include <memory>
 #include <assert.h>
@@ -425,3 +427,4 @@ namespace DS
         }
     };
 }
+#endif

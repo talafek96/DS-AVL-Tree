@@ -1,3 +1,5 @@
+#ifndef AVL_T_JSON
+#define AVL_T_JSON
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include "AVL.h"
@@ -60,3 +62,4 @@ namespace DS
         return ss.str();
     }
 }
+#endif
