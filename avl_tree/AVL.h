@@ -1,5 +1,5 @@
-#ifndef AVL_T
-#define AVL_T
+#ifndef _AVL_T
+#define _AVL_T
 #include <iostream>
 #include <memory>
 #include <assert.h>
@@ -26,6 +26,9 @@ namespace DS
         /*        Private Section        */
         /*********************************/
         std::shared_ptr<NODE> tree_root;
+        std::shared_ptr<NODE> leftmost_node;
+        std::shared_ptr<NODE> rightmost_node;
+        std::shared_ptr<NODE> tree_end;
 
         /* Private Functions: */
         // Static Functions //
@@ -181,16 +184,26 @@ namespace DS
             return root;
         } 
 
-        //finds minimum next node (find next inorder) 
-        //goes first to right child of the root and then all the way left to minimum
-        std::shared_ptr<NODE> nextLowestNode(std::shared_ptr<NODE>& root) const
+        // Finds the lowest (leftmost) node from the given root
+        std::shared_ptr<NODE> findLowestNode(const std::shared_ptr<NODE>& root) const
         {
-            std::shared_ptr<NODE> currChild = root->right;
-            while(currChild->left != nullptr)
+            std::shared_ptr<NODE> left_child = root;
+            while(left_child->left != nullptr)
             {
-                currChild = currChild->left;
+                left_child = left_child->left;
             }
-            return currChild;
+            return left_child;
+        }
+
+        // Finds the highest (rightmost) node from the given root
+        std::shared_ptr<NODE> findHighestNode(const std::shared_ptr<NODE>& root) const
+        {
+            std::shared_ptr<NODE> right_child = root;
+            while(right_child->right != nullptr)
+            {
+                right_child = right_child->right;
+            }
+            return right_child;
         }
 
         // An auxiliary eraese method for the class' use.
@@ -242,7 +255,7 @@ namespace DS
                 else
                 {
                     // Find the root's replacement node:
-                    std::shared_ptr<NODE> nextMin = nextLowestNode(root);
+                    std::shared_ptr<NODE> nextMin = findLowestNode(root->right);
                     // Backup the pointers of root before we override them
                     std::shared_ptr<NODE> rootOldLeftChild = root->left;
                     std::shared_ptr<NODE> rootOldRightChild = root->right;
@@ -339,8 +352,11 @@ namespace DS
          * 
          * Possible Exceptions: std::bad_alloc
          */
-        explicit AVL(const NODE& root) : tree_root(std::make_shared<NODE>(root)) { }
-        explicit AVL() : tree_root(nullptr) { }
+        explicit AVL(const NODE& root) : tree_root(std::make_shared<NODE>(root)), leftmost_node(root), rightmost_node(root) 
+        { 
+            tree_end = std::make_shared<NODE>();
+        }
+        explicit AVL() : tree_root(nullptr), leftmost_node(nullptr), rightmost_node(nullptr) { }
 
         AVL(const AVL<KEY_TYPE, VAL_TYPE,NODE>& other) = delete;
         AVL& operator=(const AVL& other) = delete;
@@ -362,9 +378,21 @@ namespace DS
             if(tree_root == nullptr)
             {
                 tree_root = newNode(key, val);
+                leftmost_node = rightmost_node = tree_root;
                 return tree_root;
             }
             tree_root = insertAux(key, val, tree_root);
+            
+            assert(leftmost_node);
+            assert(rightmost_node);
+            if(key < leftmost_node->key)
+            {
+                leftmost_node = findLowestNode(tree_root);
+            }
+            if(key > rightmost_node->key)
+            {
+                rightmost_node = findHighestNode(tree_root);
+            }
             return tree_root;
         }
         
@@ -379,6 +407,24 @@ namespace DS
         void erase(const KEY_TYPE& key)
         {
             tree_root = eraseAux(tree_root, key);
+            if(tree_root)
+            {
+                assert(leftmost_node);
+                assert(rightmost_node);
+                if(key == leftmost_node->key)
+                {
+                    leftmost_node = findLowestNode(tree_root);
+                }
+                if(key == rightmost_node->key)
+                {
+                    rightmost_node = findHighestNode(tree_root);
+                }
+            }
+            else
+            {
+                leftmost_node = nullptr;
+                rightmost_node = nullptr;
+            }
         }
 
         /*
@@ -425,6 +471,385 @@ namespace DS
         {
             postOrderAux(tree_root, func);
         }
+
+        /*
+         * Method: getNode
+         * Usage: tree.getNode(key);
+         * -----------------------------------
+         * Finds the key and returns the node it is stored in as a const pointer.
+         * If the key wasn't found, throws a KeyNotFound exception.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(log n).
+         * 
+         * Possible Exceptions (in scope DS::AVL):
+         * KeyNotFound.
+         */
+        const std::shared_ptr<NODE> getNode(const KEY_TYPE& key) const
+        {
+            std::shared_ptr<NODE> node = tree_root;
+            if(!node)
+            {
+                throw KeyNotFound();
+            }
+            while(node->key != key)
+            {
+                if(key > node->key)
+                {
+                    if(node->right == nullptr)
+                    {
+                        throw KeyNotFound();
+                    }
+                    node = node->right;
+                    continue;
+                }
+                else if(key < node->key)
+                {
+                    if(node->left == nullptr)
+                    {
+                        throw KeyNotFound();
+                    }
+                    node = node->left;
+                    continue;
+                }
+            }
+            // If we reached this point, node now points to the correct address.
+            return node;
+        }
+
+        /*
+         * Method: at
+         * Usage: tree.at(key);
+         * -----------------------------------
+         * Finds the key and returns the value it is mapped to.
+         * If the key wasn't found, throws a KeyNotFound exception.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(log n).
+         * 
+         * Possible Exceptions (in scope DS::AVL):
+         * KeyNotFound.
+         */
+        VAL_TYPE& at(KEY_TYPE& key)
+        {
+            return getNode(key)->val;
+        }
+
+        const VAL_TYPE& at(const KEY_TYPE& key) const
+        {
+            return getNode(key)->val;
+        }
+
+        /*
+         * Method: getLowest
+         * Usage: tree.getLowest();
+         * -----------------------------------
+         * Returns the node of the lowest key in the tree,
+         * In the case that the tree is empty, return a null pointer.
+         * 
+         * The worst time and space complexity for this method is O(1).
+         */
+        const std::shared_ptr<NODE>& getLowest() const
+        {
+            return leftmost_node;
+        }
+
+        /*
+         * Method: getHighest
+         * Usage: tree.getHighest();
+         * -----------------------------------
+         * Returns the node of the highest key in the tree,
+         * In the case that the tree is empty, return a null pointer.
+         * 
+         * The worst time and space complexity for this method is O(1).
+         */
+        const std::shared_ptr<NODE>& getHighest() const
+        {
+            return rightmost_node;
+        } 
+
+        /*
+         * Iterator support
+         */
+        //********************//
+        //**Forward Iterator**//
+        //********************//
+        template<typename AVL_T, typename TYPE>
+        class _iterator // THIS IS A TEMPLATE ITERATOR CLASS WHICH WILL NOT BE DIRECTLY REACHABLE TO THE USER!
+        {
+            /*********************************/
+            /*        Private Section        */
+            /*********************************/
+            /* Instance variables */
+            AVL_T* tree;
+            std::shared_ptr<NODE> current;
+            
+            explicit _iterator(AVL_T* tree, const std::shared_ptr<NODE> start) : tree(tree), current(start) { }
+
+            friend class AVL<KEY_TYPE, VAL_TYPE, NODE>;
+            /*
+             * Access to the ctor of this template iterator class should be
+             * limited to the AVL class.            
+             */
+
+            /*********************************/
+            /*         Public Section        */
+            /*********************************/
+            public:
+            /*
+             * Copy Constructor: _iterator 
+             * Usage: iterator new_iterator(it);
+             *        const_iterator new_iterator = it;
+             * ---------------------------------------
+             * Copies an existing iterator.
+             */
+            _iterator(const _iterator& it) : tree(it.tree), current(it.current) { }
+            
+            /*
+             * Operator: =
+             * Usage: it1 = it2;
+             * ----------------------
+             * Replaces the instance variables of it1 to the 
+             * instance variables of it2
+             */
+            _iterator& operator=(const _iterator& it)
+            {
+                _iterator copy(it);
+                tree = copy.tree;
+                current = copy.index;
+                return *this;
+            }
+
+            /*
+             * Operator: ++
+             * Usage: it++;
+             *        ++it;
+             * ----------------------
+             * Increments the iterator by 1. (According to ++ conventions)
+             */
+            _iterator& operator++()
+            {
+                if(current == tree->rightmost_node)
+                {
+                    current = tree->tree_end;
+                    return *this;
+                }
+                assert(current->right);
+                current = tree->findLowestNode(current->right);
+                return *this;
+            }
+
+            _iterator operator++(int)
+            {
+                _iterator temp_iterator = *this;
+                if(current == tree->rightmost_node)
+                {
+                    current = tree->tree_end;
+                    return *temp_iterator;
+                }
+                assert(current->right);
+                current = tree->findLowestNode(current->right);
+                return temp_iterator;
+            }
+            
+            /*
+             * Operator: *
+             * Usage: *it;
+             * ----------------------
+             * Returns the current node the AVL tree that is currently being pointed at.
+             * 
+             */
+            TYPE& operator*()
+            {
+                return current;
+            }
+            
+            /*
+             * Operator: ==, !=
+             * Usage: it1 == it2
+             *        it1 != it2
+             * ----------------------
+             * Returns a bool value that determines whether it1 is equal to it2 (true or false
+             * according to the used operator).
+             */
+            bool operator==(const _iterator& it) const noexcept
+            {
+                return (current == it.current) && (tree == it.tree);
+            }
+            
+            bool operator!=(const _iterator& it) const noexcept
+            {
+                return !(*this == it);
+            }
+        };
+
+        //********************//
+        //**Reverse Iterator**//
+        //********************//
+        template<typename AVL_T, typename TYPE>
+        class _reverse_iterator // THIS IS A TEMPLATE ITERATOR CLASS WHICH WILL NOT BE DIRECTLY REACHABLE TO THE USER!
+        {
+            /*********************************/
+            /*        Private Section        */
+            /*********************************/
+            /* Instance variables */
+            AVL_T* tree;
+            std::shared_ptr<NODE> current;
+            
+            explicit _reverse_iterator(AVL_T* tree, const std::shared_ptr<NODE> start) : tree(tree), current(start) { }
+
+            friend class AVL<KEY_TYPE, VAL_TYPE, NODE>;
+            /*
+             * Access to the ctor of this template iterator class should be
+             * limited to the AVL class.            
+             */
+
+            /*********************************/
+            /*         Public Section        */
+            /*********************************/
+            public:
+            /*
+             * Copy Constructor: _reverse_iterator 
+             * Usage: reverse_iterator new_iterator(it);
+             *        const_reverse_iterator new_iterator = it;
+             * ---------------------------------------
+             * Copies an existing iterator.
+             */
+            _reverse_iterator(const _reverse_iterator& it) : tree(it.tree), current(it.current) { }
+            
+            /*
+             * Operator: =
+             * Usage: it1 = it2;
+             * ----------------------
+             * Replaces the instance variables of it1 to the 
+             * instance variables of it2
+             */
+            _reverse_iterator& operator=(const _reverse_iterator& it)
+            {
+                _reverse_iterator copy(it);
+                tree = copy.tree;
+                current = copy.index;
+                return *this;
+            }
+
+            /*
+             * Operator: ++
+             * Usage: it++;
+             *        ++it;
+             * ----------------------
+             * Increments the iterator by 1. (According to ++ conventions)
+             */
+            _reverse_iterator& operator++()
+            {
+                if(current == tree->leftmost_node)
+                {
+                    current = tree->tree_end;
+                    return *this;
+                }
+                assert(current->left);
+                current = tree->findHighestNode(current->left);
+                return *this;
+            }
+
+            _reverse_iterator operator++(int)
+            {
+                _reverse_iterator temp_iterator = *this;
+                if(current == tree->leftmost_node)
+                {
+                    current = tree->tree_end;
+                    return temp_iterator;
+                }
+                assert(current->left);
+                current = tree->findHighestNode(current->left);
+                return temp_iterator;
+            }
+            
+            /*
+             * Operator: *
+             * Usage: *it;
+             * ----------------------
+             * Returns the current node the AVL tree that is currently being pointed at.
+             */
+            TYPE& operator*()
+            {
+                return current;
+            }
+            
+            /*
+             * Operator: ==, !=
+             * Usage: it1 == it2
+             *        it1 != it2
+             * ----------------------
+             * Returns a bool value that determines whether it1 is equal to it2 (true or false
+             * according to the used operator).
+             */
+            bool operator==(const _reverse_iterator& it) const noexcept
+            {
+                return (current == it.current) && (tree == it.tree);
+            }
+            
+            bool operator!=(const _reverse_iterator& it) const noexcept
+            {
+                return !(*this == it);
+            }
+        };
+
+        /* For the clarity of the code and prevent code duplication */
+        typedef _iterator<AVL<KEY_TYPE, VAL_TYPE, NODE>, std::shared_ptr<NODE>> iterator;
+        typedef _iterator<AVL<KEY_TYPE, VAL_TYPE, NODE>, const std::shared_ptr<NODE>> const_iterator;
+        typedef _reverse_iterator<AVL<KEY_TYPE, VAL_TYPE, NODE>, std::shared_ptr<NODE>> reverse_iterator;
+        typedef _reverse_iterator<AVL<KEY_TYPE, VAL_TYPE, NODE>, const std::shared_ptr<NODE>> const_reverse_iterator;
+
+        iterator begin() noexcept
+        {
+            iterator it(this, leftmost_node);
+            return it;
+        }
+
+        const_iterator begin() const noexcept
+        {
+            const_iterator it(this, leftmost_node);
+            return it;
+        }
+
+        reverse_iterator reverseBegin() noexcept
+        {
+            reverse_iterator it(this, rightmost_node);
+            return it;
+        }
+
+        const_reverse_iterator reverseBegin() const noexcept
+        {
+            const_reverse_iterator it(this, rightmost_node);
+            return it;
+        }
+
+        iterator end() noexcept
+        {
+            iterator new_it(this, tree_end);
+            return new_it;
+        }
+
+        const_iterator end() const noexcept
+        {
+            const_iterator new_it(this, tree_end);
+            return new_it;
+        }
+
+        reverse_iterator reverseEnd() noexcept
+        {
+            reverse_iterator new_it(this, tree_end);
+            return new_it;
+        }
+
+        const_reverse_iterator reverseEnd() const noexcept
+        {
+            const_reverse_iterator new_it(this, tree_end);
+            return new_it;
+        }
+
+        /******************/
+        /****EXCEPTIONS****/
+        /******************/
+        class KeyNotFound { };
     };
 }
 #endif
