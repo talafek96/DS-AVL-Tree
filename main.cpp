@@ -52,10 +52,6 @@ int main()
     std::cout << "Rightmost node: " << rightmost->key << ":" << rightmost->val << std::endl;
     std::cout << "Leftmost node: " << leftmost->key << ":" << leftmost->val << std::endl;
     std::cout << "The val of the key " << nums[3] << ": " << tree.at(nums[3]) << std::endl;
-    // std::cout << "Iterator test: " << std::endl;
-    // for(auto& node : tree)
-    // {
-    //     std::cout << node->key << ":" << node->val << std::endl;
-    // }
+    // std::cout << "Detecting leaks:\n" << _CrtDumpMemoryLeaks();
     return 0;
 }
