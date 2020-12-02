@@ -47,10 +47,11 @@ int main()
     tree.erase(nums[9]);
     tree.erase(nums[0]);
     tree.inOrder(func);
+    
     auto rightmost = tree.getHighest();
     auto leftmost = tree.getLowest();
-    std::cout << "Rightmost node: " << rightmost->key << ":" << rightmost->val << std::endl;
     std::cout << "Leftmost node: " << leftmost->key << ":" << leftmost->val << std::endl;
+    std::cout << "Rightmost node: " << rightmost->key << ":" << rightmost->val << std::endl;
     std::cout << "The val of the key " << nums[3] << ": " << tree.at(nums[3]) << std::endl;
     // std::cout << "Detecting leaks:\n" << _CrtDumpMemoryLeaks();
     return 0;
