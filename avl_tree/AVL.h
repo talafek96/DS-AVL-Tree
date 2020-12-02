@@ -1,6 +1,6 @@
 #ifndef _AVL_T
 #define _AVL_T
-#include <iostream>
+#define NDEBUG
 #include <memory>
 #include <assert.h>
 
@@ -16,6 +16,7 @@ namespace DS
         std::shared_ptr<graph_node<KEY_TYPE, VAL_TYPE>> father;
         std::shared_ptr<graph_node<KEY_TYPE, VAL_TYPE>> left;
         std::shared_ptr<graph_node<KEY_TYPE, VAL_TYPE>> right;
+        virtual ~graph_node() = default;
     };
 
     // The class NODE in the template must inherit from graph_node for it to work properly.
@@ -341,7 +342,7 @@ namespace DS
 
             func(p);
             (*k)--;
-            inOrderAux(p->left, k, func);
+            reverseInOrderAux(p->left, k, func);
             rightmostReverseInOrderAux(p->father, k, func);
         }
 
@@ -365,8 +366,8 @@ namespace DS
 
             func(p);
             (*k)--;
-            inOrderAux(p->left, func);
-            inOrderAux(p->right, func);
+            preOrderAux(p->left, func);
+            preOrderAux(p->right, func);
         }
 
         // An auxiliary function for postOrder.
@@ -375,8 +376,8 @@ namespace DS
         {
             if(p == NULL || k == 0) return;
 
-            inOrderAux(p->left, func);
-            inOrderAux(p->right, func);
+            postOrderAux(p->left, func);
+            postOrderAux(p->right, func);
             func(p);
             (*k)--;
         }
