@@ -1,5 +1,6 @@
 #include "avl_tree/AVL.h"
 #include <math.h>
+#include <iostream>
 #include <random>
 #include <time.h>
 
@@ -47,7 +48,7 @@ int main()
     tree.erase(nums[9]);
     tree.erase(nums[0]);
     tree.inOrder(func);
-    
+
     auto rightmost = tree.getHighest();
     auto leftmost = tree.getLowest();
     std::cout << "Leftmost node: " << leftmost->key << ":" << leftmost->val << std::endl;
