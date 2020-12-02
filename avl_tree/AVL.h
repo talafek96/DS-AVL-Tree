@@ -28,7 +28,7 @@ namespace DS
         std::shared_ptr<NODE> tree_root;
         std::shared_ptr<NODE> leftmost_node;
         std::shared_ptr<NODE> rightmost_node;
-        std::shared_ptr<NODE> tree_end;
+        int node_count;
 
         /* Private Functions: */
         // Static Functions //
@@ -133,7 +133,8 @@ namespace DS
                 if(root->left == nullptr)
                 {
                     root->left = newNode(key, val, root);
-                    root->height = max(height(root->left), height(root->right)) + 1;;
+                    root->height = max(height(root->left), height(root->right)) + 1;
+                    node_count++;
                     return root;
                 }
                 root->left = insertAux(key, val, root->left);
@@ -143,7 +144,8 @@ namespace DS
                 if(root->right == nullptr)
                 {
                     root->right = newNode(key, val, root);
-                    root->height = max(height(root->left), height(root->right)) + 1;;
+                    root->height = max(height(root->left), height(root->right)) + 1;
+                    node_count++;
                     return root;
                 }
                 root->right = insertAux(key, val, root->right);
@@ -234,6 +236,7 @@ namespace DS
                     if (child==nullptr)
                     {
                         root = nullptr;
+                        node_count--; // Decrement the count of nodes in the tree
                     }
                     // Only one child
                     else
@@ -249,6 +252,7 @@ namespace DS
                         {
                             child->left->father = root;
                         }
+                        node_count--; // Decrement the count of nodes in the tree
                     }
                 }
                 // Two children
@@ -307,35 +311,74 @@ namespace DS
 
         // An auxiliary function for inOrder.
         template<class FUNCTOR>
-        void inOrderAux(const std::shared_ptr<NODE>& p, FUNCTOR& func) const
+        void leftmostInOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
-            if(p == NULL) return;
+            if(p == NULL || k == 0) return;
 
-            inOrderAux(p->left, func);
             func(p);
-            inOrderAux(p->right, func);
+            (*k)--;
+            inOrderAux(p->right, k, func);
+            leftmostInOrderAux(p->father, k, func);
+        }
+
+        // An auxiliary function for inOrder.
+        template<class FUNCTOR>
+        void inOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
+        {
+            if(p == NULL || k == 0) return;
+
+            inOrderAux(p->left, k, func);
+            func(p);
+            (*k)--;
+            inOrderAux(p->right, k, func);
+        }
+
+        // An auxiliary function for reverseInOrder.
+        template<class FUNCTOR>
+        void rightmostReverseInOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
+        {
+            if(p == NULL || k == 0) return;
+
+            func(p);
+            (*k)--;
+            inOrderAux(p->left, k, func);
+            rightmostReverseInOrderAux(p->father, k, func);
+        }
+
+        // An auxiliary function for reverseInOrder.
+        template<class FUNCTOR>
+        void reverseInOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
+        {
+            if(p == NULL || k == 0) return;
+
+            reverseInOrderAux(p->right, k, func);
+            func(p);
+            (*k)--;
+            reverseInOrderAux(p->left, k, func);
         }
 
         // An auxiliary function for preOrder.
         template<class FUNCTOR>
-        void preOrderAux(const std::shared_ptr<NODE>& p, FUNCTOR& func) const
+        void preOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
-            if(p == NULL) return;
+            if(p == NULL || k == 0) return;
 
             func(p);
+            (*k)--;
             inOrderAux(p->left, func);
             inOrderAux(p->right, func);
         }
 
         // An auxiliary function for postOrder.
         template<class FUNCTOR>
-        void postOrderAux(const std::shared_ptr<NODE>& p, FUNCTOR& func) const
+        void postOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
-            if(p == NULL) return;
+            if(p == NULL || k == 0) return;
 
             inOrderAux(p->left, func);
             inOrderAux(p->right, func);
             func(p);
+            (*k)--;
         }
 
         /**********************************/
@@ -352,11 +395,9 @@ namespace DS
          * 
          * Possible Exceptions: std::bad_alloc
          */
-        explicit AVL(const NODE& root) : tree_root(std::make_shared<NODE>(root)), leftmost_node(root), rightmost_node(root) 
-        { 
-            tree_end = std::make_shared<NODE>();
-        }
-        explicit AVL() : tree_root(nullptr), leftmost_node(nullptr), rightmost_node(nullptr) { }
+        explicit AVL(const NODE& root) :
+        tree_root(std::make_shared<NODE>(root)), leftmost_node(root), rightmost_node(root), node_count(1) { }
+        explicit AVL() : tree_root(nullptr), leftmost_node(nullptr), rightmost_node(nullptr), node_count(0) { }
 
         AVL(const AVL<KEY_TYPE, VAL_TYPE,NODE>& other) = delete;
         AVL& operator=(const AVL& other) = delete;
@@ -379,6 +420,7 @@ namespace DS
             {
                 tree_root = newNode(key, val);
                 leftmost_node = rightmost_node = tree_root;
+                node_count++;
                 return tree_root;
             }
             tree_root = insertAux(key, val, tree_root);
@@ -430,46 +472,86 @@ namespace DS
         /*
          * Method: inOrder
          * Usage: tree.inOrder(functor);
+         *        tree.inOrder(functor, k);
          * -----------------------------------
-         * Applies the functor for each node in an inorder traversal.
+         * Applies the functor for k nodes in an in-order traversal.
+         * Input a negative number for k or do not input it to get a full tree traversal.
          * For proper use of this method, do not attempt to change the nodes of the tree.
          * When n is the total number of keys in the tree, the
          * worst time and space complexity for this method is O(n * O(func)).
+         * The amortized time complexity is O(k * O(func)).
          */
         template<class FUNCTOR>
-        void inOrder(FUNCTOR& func) const
+        void inOrder(FUNCTOR& func, int k = -1) const
         {
-            inOrderAux(tree_root, func);
+            if(k < 0)
+            {
+                k = node_count;
+            }
+            leftmostInOrderAux(leftmost_node, &k, func);
+        }
+
+        /*
+         * Method: reverseInOrder
+         * Usage: tree.reverseInOrder(functor);
+         *        tree.reverseInOrder(functor, k);
+         * -----------------------------------
+         * Applies the functor for k nodes in a reverse in-order traversal.
+         * Input a negative number for k or do not input it to get a full tree traversal.
+         * For proper use of this method, do not attempt to change the nodes of the tree.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(n * O(func)).
+         * The amortized time complexity is O(k * O(func)).
+         */
+        template<class FUNCTOR>
+        void reverseInOrder(FUNCTOR& func, int k = -1) const
+        {
+            if(k < 0)
+            {
+                k = node_count;
+            }
+            rightmostReverseInOrderAux(rightmost_node, &k, func);
         }
 
         /*
          * Method: preOrder
          * Usage: tree.prOrder(functor);
+         *        tree.prOrder(functor, k);
          * -----------------------------------
-         * Applies the functor for each node in a preorder traversal.
+         * Applies the functor for k nodes in an pre-order traversal.
+         * Input a negative number for k or do not input it to get a full tree traversal.
          * For proper use of this method, do not attempt to change the nodes of the tree.
          * When n is the total number of keys in the tree, the
          * worst time and space complexity for this method is O(n * O(func)).
          */
         template<class FUNCTOR>
-        void preOrder(FUNCTOR& func) const
+        void preOrder(FUNCTOR& func, int k = -1) const
         {
-            preOrderAux(tree_root, func);
+            if(k < 0)
+            {
+                k = node_count;
+            }
+            preOrderAux(tree_root, &k, func);
         }
 
         /*
          * Method: postOrder
          * Usage: tree.postOrder(functor);
          * -----------------------------------
-         * Applies the functor for each node in a postorder traversal.
+         * Applies the functor for k nodes in an post-order traversal.
+         * Input a negative number for k or do not input it to get a full tree traversal.
          * For proper use of this method, do not attempt to change the nodes of the tree.
          * When n is the total number of keys in the tree, the
          * worst time and space complexity for this method is O(n * O(func)).
          */
         template<class FUNCTOR>
-        void postOrder(FUNCTOR& func) const
+        void postOrder(FUNCTOR& func, int k = -1) const
         {
-            postOrderAux(tree_root, func);
+            if(k < 0)
+            {
+                k = node_count;
+            }
+            postOrderAux(tree_root, &k, func);
         }
 
         /*
