@@ -26,7 +26,7 @@ namespace DS
          * 
          * Possible exceptions:
          * std::bad_alloc
-         */   
+         */
         explicit Array(int size) : data(new T[size]), max_size(size) { }
         Array() : data(nullptr), max_size(0) { };
 

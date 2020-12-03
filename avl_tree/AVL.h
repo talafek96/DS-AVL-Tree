@@ -394,7 +394,8 @@ namespace DS
          * Create an empty AVL tree, or intialize it with a root using the first syntax.
          * Worst time complexity: O(1)
          * 
-         * Possible Exceptions: std::bad_alloc
+         * Possible Exceptions:
+         * std::bad_alloc
          */
         explicit AVL(const NODE& root) :
         tree_root(std::make_shared<NODE>(root)), leftmost_node(root), rightmost_node(root), node_count(1) { }
@@ -619,6 +620,47 @@ namespace DS
         const VAL_TYPE& at(const KEY_TYPE& key) const
         {
             return getNode(key)->val;
+        }
+
+        /*
+         * Method: find
+         * Usage: tree.find(key);
+         * -----------------------------------
+         * Checks if the key exists in the tree.
+         * If the key was found, return true. Return false otherwise.
+         * When n is the total number of keys in the tree, the
+         * worst time and space complexity for this method is O(log n).
+         */
+        bool find(const KEY_TYPE& key) const noexcept
+        {
+            std::shared_ptr<NODE> node = tree_root;
+            if(!node)
+            {
+                return false;
+            }
+            while(node->key != key)
+            {
+                if(key > node->key)
+                {
+                    if(node->right == nullptr)
+                    {
+                        return false;
+                    }
+                    node = node->right;
+                    continue;
+                }
+                else if(key < node->key)
+                {
+                    if(node->left == nullptr)
+                    {
+                        return false;
+                    }
+                    node = node->left;
+                    continue;
+                }
+            }
+            // If we reached this point, node now points to the correct address.
+            return true;
         }
 
         /*

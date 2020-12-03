@@ -1,6 +1,7 @@
 #ifndef _BOOM_H
 #define _BOOM_H
 #include "avl_tree/AVL.h"
+#include "Array/Array.h"
 
 namespace DS
 {
@@ -66,10 +67,18 @@ namespace DS
     class Boom
     {
     private:
-        /* data */
+        AVL<int, Array<std::shared_ptr<graph_node<LectureContainer, int>>>> course_tree;
+        AVL<LectureContainer,int> lecture_tree;
+        int lecture_counter = 0;
+
     public:
         Boom(/* args */);
         ~Boom();
-    };    
+
+        bool addCourse(int course_id, int numOfClasses);
+        bool getMostViewedClasses(int numOfClasses, int *courses, int *classes);
+
+        class InvalidInput { };
+    };
 }
 #endif

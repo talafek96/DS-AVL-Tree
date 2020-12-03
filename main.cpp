@@ -13,6 +13,7 @@ public:
         // int balance_fact = DS::AVL<int, int, DS::graph_node<int, int>>::getBalance(p);
         std::cout << p->key << " : " << p->val << std::endl;
         // if(balance_fact > 1 || balance_fact < -1) return false;
+
         return true;
     }
 };
@@ -48,7 +49,6 @@ int main()
     tree.erase(nums[9]);
     tree.erase(nums[0]);
     tree.inOrder(func);
-
     auto rightmost = tree.getHighest();
     auto leftmost = tree.getLowest();
     std::cout << "Leftmost node: " << leftmost->key << ":" << leftmost->val << std::endl;
