@@ -11,7 +11,7 @@ namespace DS
         int course;
         int lecture;
 
-        bool operator<(const LectureContainer& other)
+        bool operator<(const LectureContainer& other) const
         {
             if(views < other.views)
             {
@@ -38,27 +38,27 @@ namespace DS
             return false;
         }
 
-        bool operator==(const LectureContainer& other)
+        bool operator==(const LectureContainer& other) const
         {
             return (views == other.views) && (course == other.course) && (lecture == other.lecture);
         }
 
-        bool operator!=(const LectureContainer& other)
+        bool operator!=(const LectureContainer& other) const
         {
             return !(*this == other);
         }
 
-        bool operator<=(const LectureContainer& other)
+        bool operator<=(const LectureContainer& other) const
         {
             return (*this < other) || (*this == other);
         }
 
-        bool operator>(const LectureContainer& other)
+        bool operator>(const LectureContainer& other) const
         {
             return !(*this <= other);
         }
 
-        bool operator>=(const LectureContainer& other)
+        bool operator>=(const LectureContainer& other) const
         {
             return (*this > other) || (*this == other);
         }
@@ -77,7 +77,7 @@ namespace DS
 
         bool addCourse(int course_id, int numOfClasses);
         bool getMostViewedClasses(int numOfClasses, int *courses, int *classes);
-        bool removeCourseAux(int course_id);
+        bool removeCourse(int course_id);
         bool watchClass(int course_id, int class_id, int time);
         bool timeViewed(int course_id, int class_id, int *time_viewed);
 

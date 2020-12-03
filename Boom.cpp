@@ -26,7 +26,7 @@ namespace DS
 
     // If false is returned then there is no course with the given ID
     // If returned true then the remove succeeded
-    bool Boom::removeCourseAux(int course_id)
+    bool Boom::removeCourse(int course_id)
     {
         if(course_id<=0)
         {
@@ -103,7 +103,7 @@ namespace DS
             throw InvalidInput();
         }
 
-        *time_viewed = lecture_arr[class_id]->val;
+        *time_viewed = lecture_arr[class_id]? lecture_arr[class_id]->val : 0;
         return true;
     }
 
@@ -122,7 +122,7 @@ namespace DS
         class UpdateMostViewedClasses
         {
         public:
-            int counter = 0;
+            int counter;
             int *courses;
             int *classes;
 

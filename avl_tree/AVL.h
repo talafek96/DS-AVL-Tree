@@ -314,7 +314,7 @@ namespace DS
         template<class FUNCTOR>
         void leftmostInOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
-            if(p == NULL || k == 0) return;
+            if(p == NULL || *k == 0) return;
 
             func(p, k);
             inOrderAux(p->right, k, func);
@@ -325,7 +325,7 @@ namespace DS
         template<class FUNCTOR>
         void inOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
-            if(p == NULL || k == 0) return;
+            if(p == NULL || *k == 0) return;
 
             inOrderAux(p->left, k, func);
             func(p, k);
@@ -336,7 +336,7 @@ namespace DS
         template<class FUNCTOR>
         void rightmostReverseInOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
-            if(p == NULL || k == 0) return;
+            if(p == NULL || *k == 0) return;
 
             func(p);
             (*k)--;
@@ -348,7 +348,7 @@ namespace DS
         template<class FUNCTOR>
         void reverseInOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
-            if(p == NULL || k == 0) return;
+            if(p == NULL || *k == 0) return;
 
             reverseInOrderAux(p->right, k, func);
             func(p);
@@ -421,7 +421,7 @@ namespace DS
                 tree_root = newNode(key, val);
                 leftmost_node = rightmost_node = tree_root;
                 node_count++;
-                return tree_root;
+                return;
             }
             tree_root = insertAux(key, val, tree_root);
             
@@ -565,7 +565,7 @@ namespace DS
          * Possible Exceptions (in scope DS::AVL):
          * KeyNotFound.
          */
-        const std::shared_ptr<NODE> getNode(const KEY_TYPE& key) const
+        const std::shared_ptr<NODE> getNode(const KEY_TYPE& key)
         {
             std::shared_ptr<NODE> node = tree_root;
             if(!node)

@@ -85,8 +85,13 @@ int main(int argc, const char**argv) {
 
     char buffer[MAX_STRING_INPUT_SIZE];
 
+    FILE* fd = fopen("stressin9.txt", "r");
+    if(!fd)
+    {
+        return printf("File couldn't be opened, try again.");
+    }
     // Reading commands
-    while (fgets(buffer, MAX_STRING_INPUT_SIZE, stdin) != NULL) {
+    while (fgets(buffer, MAX_STRING_INPUT_SIZE, fd) != NULL) {
         fflush(stdout);
         if (parser(buffer) == error)
             break;
