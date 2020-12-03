@@ -72,11 +72,14 @@ namespace DS
         int lecture_counter = 0;
 
     public:
-        Boom(/* args */);
-        ~Boom();
+        Boom() = default;
+        ~Boom() = default;
 
         bool addCourse(int course_id, int numOfClasses);
         bool getMostViewedClasses(int numOfClasses, int *courses, int *classes);
+        bool removeCourseAux(int course_id);
+        bool watchClass(int course_id, int class_id, int time);
+        bool timeViewed(int course_id, int class_id, int *time_viewed);
 
         class InvalidInput { };
     };
