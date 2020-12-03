@@ -316,8 +316,7 @@ namespace DS
         {
             if(p == NULL || k == 0) return;
 
-            func(p);
-            (*k)--;
+            func(p, k);
             inOrderAux(p->right, k, func);
             leftmostInOrderAux(p->father, k, func);
         }
@@ -329,8 +328,7 @@ namespace DS
             if(p == NULL || k == 0) return;
 
             inOrderAux(p->left, k, func);
-            func(p);
-            (*k)--;
+            func(p, k);
             inOrderAux(p->right, k, func);
         }
 
@@ -416,7 +414,7 @@ namespace DS
          * Possible Exceptions:
          * std::bad_alloc
          */
-        std::shared_ptr<NODE>& insert(const KEY_TYPE& key, const VAL_TYPE& val)
+        void insert(const KEY_TYPE& key, const VAL_TYPE& val)
         {
             if(tree_root == nullptr)
             {
@@ -437,7 +435,6 @@ namespace DS
             {
                 rightmost_node = findHighestNode(tree_root);
             }
-            return tree_root;
         }
         
         /*

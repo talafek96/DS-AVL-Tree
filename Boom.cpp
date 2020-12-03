@@ -8,18 +8,18 @@ namespace DS
         {
             throw InvalidInput();
         }
-        if(!course_tree.find(course_id))
+        if(course_tree.find(course_id))
         {
             return false;
         }
 
-        // If we got to this point the input is valid and the course is yet to be in the system
+        // If we got to this point the input is valid and the course is yet to be in the system.
         Array<std::shared_ptr<graph_node<LectureContainer, int>>> lecture_arr(numOfClasses);
-        for(int i = 0; i < lecture_arr.size(); i++) // Initialize the array in O(numOfClass) time.
+        for(int i = 0; i < numOfClasses; i++) // Initialize the array in O(numOfClass) time.
         {
             lecture_arr[i] = nullptr; // nullptr in an array cell means that the lecture has yet to recieve any views.
         }
-        lecture_counter += lecture_arr.size();
+        lecture_counter += numOfClasses;
         course_tree.insert(course_id, lecture_arr);
         return true;
     }
@@ -59,34 +59,39 @@ namespace DS
         assert(views_functor.counter <= numOfClasses);
         if(views_functor.counter < numOfClasses)
         {
-            // In this case we need to go to the course tree and add the lectures that have no views too
-            // Create a functor to apply over the lectures that have views:
+            // In this case we need to go to the course tree and add the lectures that have no views too.
+            // Create a functor to apply over the lectures that have no views:
             class UpdateNotViewedClasses
             {
             public:
-                int counter = 0;
-                int max_adds;
+                int old_counter; // The counter from the previous functor
+                int new_counter; // The index shift for the new position in the arrays
                 int *courses;
                 int *classes;
 
-                explicit UpdateNotViewedClasses(int max_adds, int* courses, int* classes) :
-                counter(0), max_adds(max_adds), courses(courses), classes(classes) { }
-                void operator()(const std::shared_ptr<graph_node<int, Array<std::shared_ptr<graph_node<LectureContainer, int>>>>>& course)
+                explicit UpdateNotViewedClasses(int old_counter, int* courses, int* classes) :
+                old_counter(old_counter), new_counter(0), courses(courses), classes(classes) { }
+                void operator()(const std::shared_ptr<graph_node<int, Array<std::shared_ptr<graph_node<LectureContainer, int>>>>>& course,
+                                int* k)
                 {
-                    if(counter >= max_adds) // All the numOfClasses lectures are already inserted into the arrays.
+                    if(*k <= 0) // All the numOfClasses lectures are already inserted into the arrays.
                     {
-                        return;
+                        return; // (Shouldn't even get here)
                     }
                     // Check each one of the lectures in the course and add it to the arrays if it has no views:
-                    for(int i = 0; i < (course->val).size(); i++)
+                    int index = old_counter + new_counter;
+                    int size = (course->val).size(); // Number of lectures in the course
+                    for(int i = 0; i < size; i++)
                     {
                         if(course->val[i] == nullptr)
                         {
                             // Insert the class into the arrays:
-                            courses[counter] = course->key;
-                            classes[counter] = i;
-                            counter++;
-                            if(counter >= max_adds) // If this was the last class to add, stop inserting to the arrays.
+                            courses[index] = course->key;
+                            classes[index] = i;
+                            index++;
+                            new_counter++;
+                            (*k)--;
+                            if(*k <= 0) // If this was the last class to add, stop inserting to the arrays.
                             {
                                 return;
                             }
@@ -95,8 +100,8 @@ namespace DS
                 }
             };
             int remaining_classes = numOfClasses - (views_functor.counter);
-            UpdateNotViewedClasses no_views_functor(remaining_classes, courses, classes);
-            course_tree.inOrder(no_views_functor, remaining_classes); // In the worst case each course has exactly one class.
+            UpdateNotViewedClasses no_views_functor(views_functor.counter, courses, classes);
+            course_tree.inOrder(no_views_functor, remaining_classes);
         }
         return true;
     }
