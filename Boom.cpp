@@ -96,7 +96,7 @@ namespace DS
             };
             int remaining_classes = numOfClasses - (views_functor.counter);
             UpdateNotViewedClasses no_views_functor(remaining_classes, courses, classes);
-            course_tree.inOrder(no_views_functor, remaining_classes);
+            course_tree.inOrder(no_views_functor, remaining_classes); // In the worst case each course has exactly one class.
         }
         return true;
     }
