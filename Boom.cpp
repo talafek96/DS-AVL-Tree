@@ -14,7 +14,7 @@ namespace DS
         }
 
         // If we got to this point the input is valid and the course is yet to be in the system.
-        Array<std::shared_ptr<graph_node<LectureContainer, int>>> lecture_arr(numOfClasses);
+        Array<graph_node<LectureContainer, int>*> lecture_arr(numOfClasses);
         for(int i = 0; i < numOfClasses; i++) // Initialize the array in O(numOfClass) time.
         {
             lecture_arr[i] = nullptr; // nullptr in an array cell means that the lecture has yet to recieve any views.
@@ -37,7 +37,7 @@ namespace DS
             return false;
         }
         // If we reached here then course with the given id exists.
-        Array<std::shared_ptr<graph_node<LectureContainer, int>>>& lecture_arr = course_tree.at(course_id);
+        Array<graph_node<LectureContainer, int>*>& lecture_arr = course_tree.at(course_id);
         int num_of_classes = lecture_arr.size();
         for (int i=0; i<num_of_classes; i++)
         {
@@ -65,7 +65,7 @@ namespace DS
             return false;
         }
 
-        Array<std::shared_ptr<graph_node<LectureContainer, int>>>& lecture_arr = course_tree.at(course_id);
+        Array<graph_node<LectureContainer, int>*>& lecture_arr = course_tree.at(course_id);
 
         if(class_id+1>lecture_arr.size())
         {
@@ -81,7 +81,7 @@ namespace DS
         new_views += time;
         LectureContainer new_lecture = {new_views, course_id, class_id};
         lecture_tree.insert(new_lecture, new_views);
-        lecture_arr[class_id] = lecture_tree.getNode(new_lecture);
+        lecture_arr[class_id] = lecture_tree.getNode(new_lecture).get();
         return true;
     }
 
@@ -96,7 +96,7 @@ namespace DS
             return false;
         }
 
-        Array<std::shared_ptr<graph_node<LectureContainer, int>>>& lecture_arr = course_tree.at(course_id);
+        Array<graph_node<LectureContainer, int>*>& lecture_arr = course_tree.at(course_id);
 
         if(class_id + 1 > lecture_arr.size())
         {
@@ -154,7 +154,7 @@ namespace DS
 
                 explicit UpdateNotViewedClasses(int old_counter, int* courses, int* classes) :
                 old_counter(old_counter), new_counter(0), courses(courses), classes(classes) { }
-                void operator()(const std::shared_ptr<graph_node<int, Array<std::shared_ptr<graph_node<LectureContainer, int>>>>>& course,
+                void operator()(const std::shared_ptr<graph_node<int, Array<graph_node<LectureContainer, int>*>>>& course,
                                 int* k)
                 {
                     if(*k <= 0) // All the numOfClasses lectures are already inserted into the arrays.

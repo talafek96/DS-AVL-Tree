@@ -67,7 +67,7 @@ namespace DS
     class Boom
     {
     private:
-        AVL<int, Array<std::shared_ptr<graph_node<LectureContainer, int>>>> course_tree;
+        AVL<int, Array<graph_node<LectureContainer, int>*>> course_tree;
         AVL<LectureContainer,int> lecture_tree;
         int lecture_counter = 0;
 
