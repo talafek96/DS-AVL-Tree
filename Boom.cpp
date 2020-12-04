@@ -14,10 +14,10 @@ namespace DS
         }
 
         // If we got to this point the input is valid and the course is yet to be in the system.
-        Array<graph_node<LectureContainer, int>*> lecture_arr(numOfClasses);
+        Array<LectureContainer> lecture_arr(numOfClasses);
         for(int i = 0; i < numOfClasses; i++) // Initialize the array in O(numOfClass) time.
         {
-            lecture_arr[i] = nullptr; // nullptr in an array cell means that the lecture has yet to recieve any views.
+            lecture_arr[i] = {0, 0, 0}; // {0, 0, 0} in an array cell means that the lecture has yet to recieve any views.
         }
         lecture_counter += numOfClasses;
         course_tree.insert(course_id, lecture_arr);
@@ -37,14 +37,14 @@ namespace DS
             return false;
         }
         // If we reached here then course with the given id exists.
-        Array<graph_node<LectureContainer, int>*>& lecture_arr = course_tree.at(course_id);
+        Array<LectureContainer>& lecture_arr = course_tree.at(course_id);
         int num_of_classes = lecture_arr.size();
-        for (int i=0; i<num_of_classes; i++)
+        LectureContainer no_views = {0, 0, 0};
+        for (int i = 0; i < num_of_classes; i++)
         {
-            if(lecture_arr[i] != nullptr)
+            if(lecture_arr[i] != no_views)
             {
-                lecture_tree.erase(lecture_arr[i]->key);
-                lecture_arr[i] = nullptr;
+                lecture_tree.erase(lecture_arr[i]);
             }
         }
         course_tree.erase(course_id);
@@ -65,7 +65,7 @@ namespace DS
             return false;
         }
 
-        Array<graph_node<LectureContainer, int>*>& lecture_arr = course_tree.at(course_id);
+        Array<LectureContainer>& lecture_arr = course_tree.at(course_id);
 
         if(class_id + 1 > lecture_arr.size())
         {
@@ -73,15 +73,16 @@ namespace DS
         }
 
         int new_views = 0;
-        if(lecture_arr[class_id] !=  nullptr)// Class has views > 0
+        LectureContainer no_views = {0, 0, 0};
+        if(lecture_arr[class_id] !=  no_views)// Class has views > 0
         {
-            new_views = lecture_arr[class_id]->key.views;
-            lecture_tree.erase(lecture_arr[class_id]->key);
+            new_views = lecture_arr[class_id].views;
+            lecture_tree.erase(lecture_arr[class_id]);
         }
         new_views += time;
         LectureContainer new_lecture = {new_views, course_id, class_id};
         lecture_tree.insert(new_lecture, new_views);
-        lecture_arr[class_id] = lecture_tree.getNode(new_lecture).get();
+        lecture_arr[class_id] = lecture_tree.getNode(new_lecture)->key;
         return true;
     }
 
@@ -96,14 +97,15 @@ namespace DS
             return false;
         }
 
-        Array<graph_node<LectureContainer, int>*>& lecture_arr = course_tree.at(course_id);
+        Array<LectureContainer>& lecture_arr = course_tree.at(course_id);
 
         if(class_id + 1 > lecture_arr.size())
         {
             throw InvalidInput();
         }
 
-        *time_viewed = lecture_arr[class_id]? lecture_arr[class_id]->val : 0;
+        LectureContainer no_views = {0, 0, 0};
+        *time_viewed = (lecture_arr[class_id] != no_views)? lecture_arr[class_id].views : 0;
         return true;
     }
 
@@ -154,7 +156,7 @@ namespace DS
 
                 explicit UpdateNotViewedClasses(int old_counter, int* courses, int* classes) :
                 old_counter(old_counter), new_counter(0), courses(courses), classes(classes) { }
-                void operator()(const std::shared_ptr<graph_node<int, Array<graph_node<LectureContainer, int>*>>>& course,
+                void operator()(const std::shared_ptr<graph_node<int, Array<LectureContainer>>>& course,
                                 int* k)
                 {
                     if(*k <= 0) // All the numOfClasses lectures are already inserted into the arrays.
@@ -164,9 +166,10 @@ namespace DS
                     // Check each one of the lectures in the course and add it to the arrays if it has no views:
                     int index = old_counter + new_counter;
                     int size = (course->val).size(); // Number of lectures in the course
+                    LectureContainer no_views = {0, 0, 0};
                     for(int i = 0; i < size; i++)
                     {
-                        if(course->val[i] == nullptr)
+                        if(course->val[i] == no_views)
                         {
                             // Insert the class into the arrays:
                             courses[index] = course->key;

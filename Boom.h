@@ -7,9 +7,9 @@ namespace DS
 {
     struct LectureContainer
     {
-        int views;
-        int course;
-        int lecture;
+        int views = 0;
+        int course = 0;
+        int lecture = 0;
 
         bool operator<(const LectureContainer& other) const
         {
@@ -67,7 +67,7 @@ namespace DS
     class Boom
     {
     private:
-        AVL<int, Array<graph_node<LectureContainer, int>*>> course_tree;
+        AVL<int, Array<LectureContainer>> course_tree;
         AVL<LectureContainer,int> lecture_tree;
         int lecture_counter = 0;
 

@@ -84,13 +84,13 @@ static bool isInit = false;
 int main(int argc, const char**argv) {
 
     char buffer[MAX_STRING_INPUT_SIZE];
-    FILE *fd = fopen("simplein11.txt", "r");
-    if(!fd)
-    {
-        return printf("Sux to b u");
-    }
+    // FILE *fd = fopen("in6.txt", "r");
+    // if(!fd)
+    // {
+    //     return printf("Sux to b u");
+    // }
     // Reading commands
-    while (fgets(buffer, MAX_STRING_INPUT_SIZE, fd) != NULL) {
+    while (fgets(buffer, MAX_STRING_INPUT_SIZE, stdin) != NULL) {
         fflush(stdout);
         if (parser(buffer) == error)
             break;
