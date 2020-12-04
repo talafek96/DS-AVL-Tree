@@ -386,6 +386,16 @@ namespace DS
             (*k)--;
         }
 
+        void deleteTree(std::shared_ptr<NODE>& root) 
+        {
+            if (root != nullptr) 
+            {
+                deleteTree(root->left);
+                deleteTree(root->right);
+                root = nullptr;
+            }
+        }
+
         /**********************************/
         /*         Public Section         */
         /**********************************/
@@ -407,7 +417,10 @@ namespace DS
 
         AVL(const AVL<KEY_TYPE, VAL_TYPE,NODE>& other) = delete;
         AVL& operator=(const AVL& other) = delete;
-        ~AVL() = default;    
+        virtual ~AVL()
+        {
+            deleteTree(tree_root);
+        };
 
         /*
          * Method: insert
