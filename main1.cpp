@@ -84,14 +84,13 @@ static bool isInit = false;
 int main(int argc, const char**argv) {
 
     char buffer[MAX_STRING_INPUT_SIZE];
-
-    FILE* fd = fopen("stressin9.txt", "r");
-    if(!fd)
-    {
-        return printf("File couldn't be opened, try again.");
-    }
+    // FILE *fd = fopen("stressin8.txt", "r");
+    // if(!fd)
+    // {
+    //     return printf("Sux to b u");
+    // }
     // Reading commands
-    while (fgets(buffer, MAX_STRING_INPUT_SIZE, fd) != NULL) {
+    while (fgets(buffer, MAX_STRING_INPUT_SIZE, stdin) != NULL) {
         fflush(stdout);
         if (parser(buffer) == error)
             break;
@@ -258,20 +257,20 @@ static errorType OnTimeViewed(void* DS, const char* const command) {
 
 static errorType OnGetMostViewedClasses(void* DS, const char* const command) {
     int numOfClasses;
-    int *courses= nullptr, *classes=nullptr;
+    int *courses = NULL, *classes = NULL;
+	StatusType res;
 
 	ValidateRead(sscanf(command, "%d", &numOfClasses), 1, "%s failed.\n", commandStr[GETMOSTVIEWEDCLASSES_CMD]);
 	if (numOfClasses > 0) {
 		courses = (int *)malloc(numOfClasses * sizeof(int));
 		classes = (int *)malloc(numOfClasses * sizeof(int));
+		if (courses == NULL || classes == NULL) {
+		res = ALLOCATION_ERROR;
+		}
 	}
 
-	StatusType res;
-	if (courses != NULL && classes != NULL) {
+	if (res != ALLOCATION_ERROR) {
 		res = GetMostViewedClasses(DS, numOfClasses, courses, classes);
-	}
-	else {
-		res = ALLOCATION_ERROR;
 	}
 
     if (res != SUCCESS) {

@@ -1,6 +1,5 @@
 #ifndef _AVL_T
 #define _AVL_T
-#define NDEBUG
 #include <memory>
 #include <assert.h>
 
@@ -337,7 +336,6 @@ namespace DS
         void rightmostReverseInOrderAux(const std::shared_ptr<NODE>& p, int* k, FUNCTOR& func) const
         {
             if(p == NULL || *k == 0) return;
-
             func(p);
             (*k)--;
             reverseInOrderAux(p->left, k, func);
@@ -351,8 +349,16 @@ namespace DS
             if(p == NULL || *k == 0) return;
 
             reverseInOrderAux(p->right, k, func);
+            if(*k == 0)
+            {
+                return;
+            }
             func(p);
             (*k)--;
+            if(*k == 0)
+            {
+                return;
+            }
             reverseInOrderAux(p->left, k, func);
         }
 
