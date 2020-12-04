@@ -7,9 +7,9 @@ namespace DS
 {
     struct LectureContainer
     {
-        int views = 0;
-        int course = 0;
-        int lecture = 0;
+        int views;
+        int course;
+        int lecture;
 
         bool operator<(const LectureContainer& other) const
         {
