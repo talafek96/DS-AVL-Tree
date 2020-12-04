@@ -84,13 +84,13 @@ static bool isInit = false;
 int main(int argc, const char**argv) {
 
     char buffer[MAX_STRING_INPUT_SIZE];
-    // FILE *fd = fopen("stressin8.txt", "r");
-    // if(!fd)
-    // {
-    //     return printf("Sux to b u");
-    // }
+    FILE *fd = fopen("simplein11.txt", "r");
+    if(!fd)
+    {
+        return printf("Sux to b u");
+    }
     // Reading commands
-    while (fgets(buffer, MAX_STRING_INPUT_SIZE, stdin) != NULL) {
+    while (fgets(buffer, MAX_STRING_INPUT_SIZE, fd) != NULL) {
         fflush(stdout);
         if (parser(buffer) == error)
             break;
@@ -256,9 +256,9 @@ static errorType OnTimeViewed(void* DS, const char* const command) {
 }
 
 static errorType OnGetMostViewedClasses(void* DS, const char* const command) {
-    int numOfClasses;
+    int numOfClasses = 0;
     int *courses = NULL, *classes = NULL;
-	StatusType res;
+	StatusType res = SUCCESS;
 
 	ValidateRead(sscanf(command, "%d", &numOfClasses), 1, "%s failed.\n", commandStr[GETMOSTVIEWEDCLASSES_CMD]);
 	if (numOfClasses > 0) {
