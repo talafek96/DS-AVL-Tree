@@ -41,14 +41,14 @@ namespace DS
         int num_of_classes = lecture_arr.size();
         for (int i=0; i<num_of_classes; i++)
         {
-            if(lecture_arr[i]!= nullptr)
+            if(lecture_arr[i] != nullptr)
             {
                 lecture_tree.erase(lecture_arr[i]->key);
-                lecture_arr[i]= nullptr;
+                lecture_arr[i] = nullptr;
             }
         }
         course_tree.erase(course_id);
-        lecture_counter-=num_of_classes;
+        lecture_counter -= num_of_classes;
         return true;
     }
 
@@ -56,7 +56,7 @@ namespace DS
     // If true is returned then the watch succeeded
     bool Boom::watchClass(int course_id, int class_id, int time)
     {
-        if(time<=0 || class_id<0 || course_id<=0)
+        if(time <= 0 || class_id < 0 || course_id <= 0)
         {
             throw InvalidInput();
         }
@@ -67,13 +67,13 @@ namespace DS
 
         Array<graph_node<LectureContainer, int>*>& lecture_arr = course_tree.at(course_id);
 
-        if(class_id+1>lecture_arr.size())
+        if(class_id + 1 > lecture_arr.size())
         {
             throw InvalidInput();
         }
 
         int new_views = 0;
-        if(lecture_arr[class_id] !=  nullptr)//Class has views>0
+        if(lecture_arr[class_id] !=  nullptr)// Class has views > 0
         {
             new_views = lecture_arr[class_id]->key.views;
             lecture_tree.erase(lecture_arr[class_id]->key);
